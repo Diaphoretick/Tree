@@ -9,16 +9,16 @@ def fasta_to_dictionaries():
         except:
             print("Couldn't read the file. Try again")
     num_of_data = len(falt)
-    if num_of_data==1:
-        print('Only one organism was detected. Unable to build a tree.')
-        exit()
     print('Number of organisms: '+str(num_of_data))
+    if num_of_data<3:
+        print('At least three sequences are needed. Unable to build a tree.')
+        exit()
     names={}
     seq={}
     for i in range(num_of_data):
         nl=int(falt[i].find('\n'))
         names[i]='>'+str(falt[i][0:nl])
-        seq[i]=''.join(falt[i][nl+1:].split('\n'))
+        seq[i]=(''.join(falt[i][nl+1:].split('\n'))).upper()
     return names, seq
 
 def newick(link, nodes):
@@ -256,14 +256,15 @@ def fill_columns(nodes, af, n, bf, dots, tree):
     tree[brrow].append('└')
     for rrow in range(brrow+1, bf):
         tree[rrow].append(' ')
-    for br in range(int(nodes[n][1]*resolution)):
+    
+    for br in range(int(float(nodes[n][1])*float(resolution))):
         for rrow in range(af, arrow):
             tree[rrow].append(' ')
         tree[arrow].append('─')
         for rrow in range(arrow+1, nrrow):
             tree[rrow].append(' ')
             
-    for br in range(int(nodes[n][3]*resolution)):
+    for br in range(int(float(nodes[n][3])*float(resolution))):
         for rrow in range(nrrow+1, brrow):
             tree[rrow].append(' ')
         tree[brrow].append('─')
@@ -307,11 +308,14 @@ def drawing_a_tree(nodes, resolution):
 print('''Welcome to the tree calculator.
 Build UPGMA, WPGMA or neighbour joining trees from aligned nucleotides/aminoacids sequence.''')
 d_names, d_seq = fasta_to_dictionaries()
+print('Calculating distances...')
 matrix = d_to_matrix(d_names, d_seq)
+print('Done')
 
 nodes_of_tree = []
 while nodes_of_tree==[]:
     algorithm = input('Choose algorithm (UPGMA/WPGMA/NJ): ')
+    
     if algorithm.upper()=='UPGMA':
         print('Calculating UPGMA tree...')
         nodes_of_tree = upgma(matrix, True)
@@ -335,7 +339,7 @@ if do_newick=='Y':
 
 do_drawing = input('\nWould you like to print the tree to the shell? (Y/n): ')
 if do_drawing=='Y':
-    resolution = 1
+    resolution = input('You can enter different resolution of tree branches. 1 is defult, I recommend starting with it. ') or 1
     drawing_a_tree(nodes_of_tree, resolution)
     print('''\n
         Try zooming out (Ctrl, -) or in (Ctrl, Shift, +) if you cannot see a nice tree.
